@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>File upload html5 example</title>
+<script type="text/javascript">
+function post(url, data, callback) {
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", url);
+	
+	xhr.onreadystatechange = function(e) {
+		if (this.readyState === 4 && this.status === 200) {
+			callback(this.responseText);
+		}
+	};
+	
+	xhr.send(data);	
+}
+
+function get(url, callback) {
+	var xhr = new XMLHttpRequest();
+	xhr.open("get", url);
+	
+	xhr.onreadystatechange = function(e) {
+		if (this.readyState === 4 && this.status === 200) {
+			callback(this.responseText);
+		}
+	};
+	
+	xhr.send();	
+}
+
+function upload() {
+	var formData = new FormData(),
+		xhr = new XMLHttpRequest();
+	
+	formData.append('file', document.getElementById('file-input').files[0]);
+	post('upload', formData, function (response) {
+		if (response === '') {
+			response = [];
+		} else {
+			response = response.split('|');
+		}
+		
+		showFiles(response);
+	});	
+	
+	return false;
+}
+
+function getFileNames(callback) {
+	get('files', function (response) {
+		if (response === '') {
+			response = [];
+		} else {
+			response = response.split('|');
+		}
+		
+		showFiles(response);
+	});
+}
+
+function createFileItem(fileName) {
+	var fileItem = document.createElement('div'),
+		downloadLink = document.createElement('a'),
+		deleteLink = document.createElement('a'),
+		delimeter = document.createElement('span');
+	
+	delimeter.innerHTML = ' | ';
+		
+	downloadLink.href = "uploaded-files/" + fileName;
+	downloadLink.innerHTML = fileName;	
+	
+	deleteLink.href = "delete?fileName=" + fileName;
+	deleteLink.innerHTML = 'x';
+	
+	deleteLink.onclick = function () {
+
+		get(deleteLink.href, function (response) {
+			if (response === '') {
+				response = [];
+			} else {
+				response = response.split('|');
+			}
+			
+			showFiles(response);
+		});
+
+		return false;
+	};
+
+	fileItem.appendChild(downloadLink);
+	fileItem.appendChild(delimeter);
+	fileItem.appendChild(deleteLink);
+	
+	return fileItem;
+}
+
+function showFiles(files) {
+	var fileBox = document.getElementById('files'),
+		documentFragment = document.createDocumentFragment(),		
+		i = 0,
+		fileItem;
+	
+	fileBox.innerHTML = '';
+
+	for ( ; i < files.length; i++) {
+		fileItem = createFileItem(files[i]);
+		documentFragment.appendChild(fileItem);
+	}
+	
+	fileBox.appendChild(documentFragment);
+}
+
+window.onload = function () {
+	getFileNames(showFiles);
+};
+</script>
+</head>
+
+<body>
+	<form enctype="multipart/form-data" method="post" name="fileinfo"
+		onsubmit="return upload()">
+		File to upload: <input type="file" name="file" id="file-input"><br />
+		<input type="submit" value="Upload" />
+	</form>
+	<div id="files"></div>
+</body>
+</html>
