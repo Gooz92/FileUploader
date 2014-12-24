@@ -70,7 +70,9 @@ public class FileController {
 				.append("|");
 		}
 
-		csv.append(files[i]);
+		if (files.length > 0) {
+			csv.append(files[i]);
+		}
 
 		return csv.toString();
 	}
